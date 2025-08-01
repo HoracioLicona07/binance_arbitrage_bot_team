@@ -1,0 +1,15 @@
+# binance_arbitrage_bot/.gitignore
+
+# Entornos virtuales
+venv/
+
+# Cache y bytecode
+__pycache__/
+*.pyc
+
+# .gitignore
+*.pyo
+*.pyd
+.idea/
+.vscode/
+.DS_Store
