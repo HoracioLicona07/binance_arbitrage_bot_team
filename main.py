@@ -9,109 +9,145 @@ from services import scanner
 
 # Intentar importar módulos mejorados (opcional)
 try:
-    from binance_api.websocket_manager import websocket_manager
-    WEBSOCKET_AVAILABLE = True
-    logging.info("✅ WebSocket manager disponible")
-except ImportError:
-    WEBSOCKET_AVAILABLE = False
-    logging.info("⚠️ WebSocket manager no disponible - usando REST API")
-
-try:
     from binance_api.fee_manager import fee_manager
     FEE_MANAGER_AVAILABLE = True
-    logging.info("✅ Fee manager disponible")
+    print("✅ Fee manager disponible")
 except ImportError:
     FEE_MANAGER_AVAILABLE = False
-    logging.info("⚠️ Fee manager no disponible - usando fees por defecto")
+    print("⚠️ Fee manager no disponible - usando fees por defecto")
 
 try:
     from detection.liquidity_analyzer import liquidity_analyzer
     LIQUIDITY_ANALYZER_AVAILABLE = True
-    logging.info("✅ Liquidity analyzer disponible")
+    print("✅ Liquidity analyzer disponible")
 except ImportError:
     LIQUIDITY_ANALYZER_AVAILABLE = False
-    logging.info("⚠️ Liquidity analyzer no disponible")
+    print("⚠️ Liquidity analyzer no disponible")
 
 try:
     from risk_management.risk_calculator import risk_calculator
     RISK_CALCULATOR_AVAILABLE = True
-    logging.info("✅ Risk calculator disponible")
+    print("✅ Risk calculator disponible")
 except ImportError:
     RISK_CALCULATOR_AVAILABLE = False
-    logging.info("⚠️ Risk calculator no disponible")
+    print("⚠️ Risk calculator no disponible")
 
-# Determinar modo de operación
-ENHANCED_MODE = all([
-    WEBSOCKET_AVAILABLE,
-    FEE_MANAGER_AVAILABLE, 
-    LIQUIDITY_ANALYZER_AVAILABLE,
-    RISK_CALCULATOR_AVAILABLE
-])
+try:
+    from binance_api.order_executor import order_executor
+    ORDER_EXECUTOR_AVAILABLE = True
+    print("✅ Order executor disponible")
+except ImportError:
+    ORDER_EXECUTOR_AVAILABLE = False
+    print("⚠️ Order executor no disponible")
+
+try:
+    from detection.opportunity_scanner import opportunity_scanner
+    OPPORTUNITY_SCANNER_AVAILABLE = True
+    print("✅ Opportunity scanner disponible")
+except ImportError:
+    OPPORTUNITY_SCANNER_AVAILABLE = False
+    print("⚠️ Opportunity scanner no disponible")
+
+try:
+    from analytics.performance_analyzer import performance_analyzer
+    PERFORMANCE_ANALYZER_AVAILABLE = True
+    print("✅ Performance analyzer disponible")
+except ImportError:
+    PERFORMANCE_ANALYZER_AVAILABLE = False
+    print("⚠️ Performance analyzer no disponible")
+
+# WebSocket deshabilitado temporalmente hasta corregir el error
+WEBSOCKET_AVAILABLE = False
 
 class ArbitrageBot:
     def __init__(self):
         self.running = False
-        self.websocket_active = False
         
+    def verify_api_configuration(self):
+        """Verifica que las API keys estén configuradas correctamente"""
+        try:
+            from binance_api.client import client, API_KEY, API_SECRET
+            
+            # Verificar que no sean los valores por defecto
+            if not API_KEY or not API_SECRET or API_KEY == "tu_api_key":
+                logging.error("❌ API Keys no configuradas correctamente")
+                logging.error("   Por favor actualiza tu archivo .env con tus claves reales de Binance")
+                return False
+            
+            # Probar conexión básica
+            try:
+                server_time = client.get_server_time()
+                logging.info(f"✅ Conexión con Binance exitosa")
+                return True
+            except Exception as e:
+                logging.error(f"❌ Error conectando con Binance: {e}")
+                if "IP" in str(e):
+                    logging.error("   💡 Solución: Añade tu IP a la whitelist de Binance")
+                elif "Timestamp" in str(e):
+                    logging.error("   💡 Solución: Sincroniza la hora de tu sistema")
+                return False
+                
+        except Exception as e:
+            logging.error(f"❌ Error verificando configuración: {e}")
+            return False
+    
     def initialize_enhanced_features(self):
         """Inicializa características mejoradas disponibles"""
         improvements_active = []
         
-        # 1. Fee Manager
+        # 1. Fee Manager (con manejo de errores mejorado)
         if FEE_MANAGER_AVAILABLE:
             try:
                 logging.info("💰 Inicializando gestión de comisiones...")
+                
+                # Verificar conexión API primero
+                from binance_api.client import client
+                try:
+                    account = client.get_account()
+                    logging.info("✅ API Keys funcionando correctamente")
+                except Exception as api_error:
+                    logging.warning(f"⚠️ Error de API: {api_error}")
+                    logging.warning("   Continuando sin fee manager personalizado")
+                    return len(improvements_active) > 0
+                
                 fee_manager.refresh_fees()
                 fee_analysis = fee_manager.get_fee_analysis()
-                logging.info(f"📊 Usuario VIP Tier: {fee_analysis['user_vip_tier']}")
-                logging.info(f"💳 Descuento BNB: {'Activo' if fee_analysis['bnb_discount_active'] else 'Inactivo'}")
-                logging.info(f"📈 Comisión actual: {fee_analysis['current_taker_fee']*100:.3f}%")
-                improvements_active.append("Fee Manager")
                 
-                # Mostrar consejos de optimización
-                optimization_tips = fee_analysis.get('optimization_tips', [])
-                if optimization_tips:
-                    logging.info("💡 Consejos de optimización:")
-                    for tip in optimization_tips[:2]:
-                        logging.info(f"   {tip}")
+                if fee_analysis.get('user_vip_tier') is not None:
+                    logging.info(f"📊 Usuario VIP Tier: {fee_analysis['user_vip_tier']}")
+                    logging.info(f"💳 Descuento BNB: {'Activo' if fee_analysis['bnb_discount_active'] else 'Inactivo'}")
+                    logging.info(f"📈 Comisión actual: {fee_analysis['current_taker_fee']*100:.3f}%")
+                    improvements_active.append("Fee Manager")
+                
             except Exception as e:
-                logging.error(f"❌ Error inicializando fee manager: {e}")
+                logging.warning(f"⚠️ Fee manager no completamente funcional: {e}")
         
-        # 2. Risk Calculator
+        # 2. Risk Calculator (con manejo de errores mejorado)
         if RISK_CALCULATOR_AVAILABLE:
             try:
                 logging.info("🛡️ Inicializando gestión de riesgos...")
                 risk_summary = risk_calculator.get_risk_summary()
-                logging.info(f"💵 Capital disponible: {risk_summary['available_capital']:.2f} USDT")
-                logging.info(f"📊 Riesgo diario usado: {risk_summary['daily_risk_used_pct']:.1f}%")
-                logging.info(f"💼 Tamaño máximo de posición: {risk_summary['max_position_size']:.2f} USDT")
-                improvements_active.append("Risk Calculator")
-            except Exception as e:
-                logging.error(f"❌ Error inicializando risk calculator: {e}")
-        
-        # 3. WebSocket Manager
-        if WEBSOCKET_AVAILABLE:
-            try:
-                from binance_api import market_data
-                from config import settings
                 
-                logging.info("🌐 Iniciando streams WebSocket...")
-                symbols = market_data.top_volume_symbols(30)  # Reducido para pruebas
-                websocket_manager.start(symbols)
-                
-                time.sleep(1)  # Esperar conexión
-                
-                status = websocket_manager.get_connection_status()
-                connected_streams = sum(1 for s in status.values() if s == 'connected')
-                
-                if connected_streams > 0:
-                    logging.info(f"✅ WebSocket conectado - {connected_streams} streams activos")
-                    self.websocket_active = True
-                    improvements_active.append("WebSocket")
+                if risk_summary.get('available_capital', 0) > 0:
+                    logging.info(f"💵 Capital disponible: {risk_summary['available_capital']:.2f} USDT")
+                    logging.info(f"📊 Riesgo diario usado: {risk_summary['daily_risk_used_pct']:.1f}%")
+                    logging.info(f"💼 Tamaño máximo de posición: {risk_summary['max_position_size']:.2f} USDT")
+                    improvements_active.append("Risk Calculator")
                 else:
-                    logging.warning("⚠️ WebSocket no se conectó - usando REST API")
+                    logging.warning("⚠️ Risk calculator en modo conservador")
+                    improvements_active.append("Risk Calculator (Limitado)")
+                    
             except Exception as e:
-                logging.error(f"❌ Error iniciando WebSocket: {e}")
+                logging.warning(f"⚠️ Risk calculator limitado: {e}")
+        
+        # 3. Performance Analyzer
+        if PERFORMANCE_ANALYZER_AVAILABLE:
+            try:
+                logging.info("📊 Inicializando analizador de rendimiento...")
+                performance_analyzer.reset_session(initial_capital=1000.0)
+                improvements_active.append("Performance Analyzer")
+            except Exception as e:
+                logging.warning(f"⚠️ Performance analyzer limitado: {e}")
         
         logging.info(f"🔧 Mejoras activas: {', '.join(improvements_active) if improvements_active else 'Ninguna'}")
         return len(improvements_active) > 0
@@ -133,28 +169,33 @@ class ArbitrageBot:
         # Configurar manejadores de señales
         self.setup_signal_handlers()
         
+        # Verificar configuración API
+        if not self.verify_api_configuration():
+            logging.error("❌ No se puede continuar sin configuración API válida")
+            return
+        
         # Intentar inicializar mejoras disponibles
         has_improvements = self.initialize_enhanced_features()
         
         # Mostrar información de inicio
-        if ENHANCED_MODE:
-            mode = "🚀 COMPLETO"
+        if OPPORTUNITY_SCANNER_AVAILABLE and ORDER_EXECUTOR_AVAILABLE and has_improvements:
+            mode = "🚀 AVANZADO"
         elif has_improvements:
-            mode = "⚡ PARCIAL"
+            mode = "⚡ MEJORADO"
         else:
             mode = "📊 BÁSICO"
         
-        ws_status = "🌐 WebSocket" if self.websocket_active else "🔄 REST API"
-        
         logging.info("=" * 60)
-        logging.info(f"🎯 BOT INICIADO - Modo: {mode} | Datos: {ws_status}")
+        logging.info(f"🎯 BOT INICIADO - Modo: {mode} | Datos: 🔄 REST API")
         logging.info("=" * 60)
         
         try:
             self.running = True
             
             # Usar scanner apropiado
-            if has_improvements:
+            if OPPORTUNITY_SCANNER_AVAILABLE and has_improvements:
+                self.run_advanced_scanner()
+            elif has_improvements:
                 self.run_improved_scanner()
             else:
                 # Usar scanner original
@@ -170,31 +211,28 @@ class ArbitrageBot:
         finally:
             self.shutdown()
     
-    def run_improved_scanner(self):
-        """Scanner con algunas mejoras disponibles"""
+    def run_advanced_scanner(self):
+        """Scanner avanzado con opportunity scanner"""
         from binance_api import market_data
         from config import settings
-        from itertools import combinations
-        from strategies.triangular import (
-            simulate_route_gain,
-            execute_arbitrage_trade,
-            fetch_symbol_filters,
-            hourly_interest
-        )
+        from strategies.triangular import fetch_symbol_filters
         
-        # Reset de riesgo diario si está disponible
+        # Inicializar
+        fetch_symbol_filters()
+        
+        # Reset de riesgo diario
         if RISK_CALCULATOR_AVAILABLE:
             import datetime
             last_reset = getattr(self, 'last_reset_date', None)
             today = datetime.date.today()
             
             if last_reset != today:
-                risk_calculator.reset_daily_risk()
-                self.last_reset_date = today
-                logging.info("🔄 Nuevo día - riesgo diario reseteado")
-        
-        # Inicializar filtros de símbolos
-        fetch_symbol_filters()
+                try:
+                    risk_calculator.reset_daily_risk()
+                    self.last_reset_date = today
+                    logging.info("🔄 Nuevo día - riesgo diario reseteado")
+                except:
+                    pass
         
         # Obtener información inicial
         sym_map = market_data.exchange_map()
@@ -215,22 +253,165 @@ class ArbitrageBot:
                 coins.discard(settings.BASE_ASSET)
                 
                 # Obtener libros de órdenes
-                if self.websocket_active and WEBSOCKET_AVAILABLE:
-                    books = websocket_manager.get_all_orderbooks()
-                    # Completar con REST API si es necesario
-                    missing_symbols = [s for s in symbols if s not in books]
-                    if missing_symbols:
-                        rest_books = market_data.depth_snapshots(missing_symbols[:20])  # Limitar
-                        books.update(rest_books)
-                else:
-                    books = market_data.depth_snapshots(symbols)
+                books = market_data.depth_snapshots(symbols)
+                
+                # Buscar oportunidades con scanner avanzado
+                opportunities = opportunity_scanner.scan_opportunities(
+                    symbols, books, valid_symbols, coins
+                )
+                
+                cycles_completed += 1
+                opportunities_found += len(opportunities)
+                
+                logging.info(f"▶️ Ciclo {cycles_completed} - Monedas: {len(coins)} | Oportunidades: {len(opportunities)}")
+                
+                cycle_trades = 0
+                
+                # Evaluar top oportunidades
+                for opportunity in opportunities[:2]:  # Top 2
+                    try:
+                        # Análisis de liquidez
+                        if LIQUIDITY_ANALYZER_AVAILABLE:
+                            liquidity_analysis = liquidity_analyzer.analyze_route_liquidity(
+                                opportunity.route, opportunity.amount, books
+                            )
+                            
+                            if not liquidity_analysis['is_viable']:
+                                logging.debug(f"❌ Oportunidad rechazada por liquidez")
+                                continue
+                        
+                        # Análisis de riesgo
+                        optimal_amount = opportunity.amount
+                        if RISK_CALCULATOR_AVAILABLE:
+                            try:
+                                risk_metrics = risk_calculator.calculate_risk_metrics(
+                                    opportunity.route, opportunity.amount, 
+                                    opportunity.expected_profit, books
+                                )
+                                
+                                should_execute, reason = risk_calculator.should_execute_trade(risk_metrics)
+                                if not should_execute:
+                                    logging.debug(f"❌ Trade rechazado: {reason}")
+                                    continue
+                                
+                                optimal_amount = min(risk_metrics.recommended_position_size, opportunity.amount)
+                            except:
+                                pass
+                        
+                        logging.info(
+                            f"💰 OPORTUNIDAD: {' → '.join(opportunity.route)}\n"
+                            f"   💵 Cantidad: {optimal_amount:.2f} USDT\n"
+                            f"   📈 Ganancia esperada: +{opportunity.expected_profit:.4f} USDT\n"
+                            f"   🎯 Confianza: {opportunity.confidence_score:.1%}"
+                        )
+                        
+                        if settings.LIVE:
+                            if ORDER_EXECUTOR_AVAILABLE:
+                                # Usar executor avanzado
+                                try:
+                                    execution_result = order_executor.execute_arbitrage_atomic(
+                                        opportunity.route, optimal_amount, max_slippage=0.02
+                                    )
+                                    
+                                    if execution_result.success:
+                                        cycle_trades += 1
+                                        trades_executed += 1
+                                        
+                                        logging.info(f"✅ Trade exitoso: +{execution_result.net_profit:.4f} USDT")
+                                        
+                                        # Registrar en performance analyzer
+                                        if PERFORMANCE_ANALYZER_AVAILABLE:
+                                            try:
+                                                performance_analyzer.record_trade(
+                                                    route=execution_result.route,
+                                                    initial_amount=execution_result.initial_amount,
+                                                    final_amount=execution_result.final_amount,
+                                                    execution_time=execution_result.execution_time,
+                                                    fees_paid=execution_result.total_fees,
+                                                    confidence_score=opportunity.confidence_score,
+                                                    risk_score=opportunity.risk_score
+                                                )
+                                            except:
+                                                pass
+                                    else:
+                                        logging.error(f"❌ Error en trade: {execution_result.error_message}")
+                                except Exception as e:
+                                    logging.error(f"❌ Error en order executor: {e}")
+                                    # Fallback a método básico
+                                    from strategies.triangular import execute_arbitrage_trade
+                                    execute_arbitrage_trade(opportunity.route, optimal_amount)
+                                    cycle_trades += 1
+                            else:
+                                # Método básico
+                                from strategies.triangular import execute_arbitrage_trade
+                                execute_arbitrage_trade(opportunity.route, optimal_amount)
+                                cycle_trades += 1
+                        else:
+                            logging.info("📝 Modo simulación")
+                    
+                    except Exception as e:
+                        logging.error(f"❌ Error procesando oportunidad: {e}")
+                        continue
+                
+                # Estadísticas cada 10 ciclos
+                if cycles_completed % 10 == 0:
+                    avg_opportunities = opportunities_found / cycles_completed
+                    success_rate = (trades_executed / max(opportunities_found, 1)) * 100
+                    
+                    logging.info("📊 ESTADÍSTICAS:")
+                    logging.info(f"   🔄 Ciclos: {cycles_completed}")
+                    logging.info(f"   🎯 Oportunidades/ciclo: {avg_opportunities:.1f}")
+                    logging.info(f"   ✅ Trades: {trades_executed} | 📈 Éxito: {success_rate:.1f}%")
+                
+                # Pausa entre ciclos
+                cycle_time = time.time() - cycle_start
+                sleep_time = max(0, settings.SLEEP_BETWEEN - cycle_time)
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+                    
+            except Exception as e:
+                logging.error(f"❌ Error en ciclo avanzado: {e}")
+                time.sleep(1)
+    
+    def run_improved_scanner(self):
+        """Scanner mejorado básico"""
+        from binance_api import market_data
+        from config import settings
+        from itertools import combinations
+        from strategies.triangular import (
+            simulate_route_gain,
+            execute_arbitrage_trade,
+            fetch_symbol_filters,
+            hourly_interest
+        )
+        
+        # Inicializar
+        fetch_symbol_filters()
+        sym_map = market_data.exchange_map()
+        valid_symbols = set(sym_map.keys())
+        
+        # Contadores
+        cycles_completed = 0
+        opportunities_found = 0
+        trades_executed = 0
+        
+        while self.running:
+            cycle_start = time.time()
+            
+            try:
+                # Obtener datos de mercado
+                symbols = market_data.top_volume_symbols(settings.TOP_N_PAIRS)
+                coins = {c for s in symbols if s in sym_map for c in sym_map[s]}
+                coins.discard(settings.BASE_ASSET)
+                
+                books = market_data.depth_snapshots(symbols)
                 
                 logging.info(f"▶️ Ciclo {cycles_completed + 1} - Monedas: {len(coins)} | Books: {len(books)}")
                 
                 cycle_opportunities = 0
                 cycle_trades = 0
                 
-                # Buscar oportunidades
+                # Buscar oportunidades básicas
                 for hops in (3, 4):
                     for combo in combinations(coins, hops - 1):
                         if not self.running:
@@ -253,58 +434,18 @@ class ArbitrageBot:
                             if net_gain > settings.PROFIT_THOLD:
                                 cycle_opportunities += 1
                                 
-                                # Análisis mejorado si está disponible
-                                should_execute = True
-                                optimal_amount = usdt_amt
-                                rejection_reason = ""
+                                logging.info(
+                                    f"💰 OPORTUNIDAD: {' → '.join(route)}\n"
+                                    f"   💵 Cantidad: {usdt_amt:.2f} USDT\n"
+                                    f"   📈 Ganancia: +{expected_profit:.4f} USDT ({net_gain*100:.3f}%)"
+                                )
                                 
-                                # Análisis de liquidez si está disponible
-                                if LIQUIDITY_ANALYZER_AVAILABLE:
-                                    try:
-                                        liquidity_analysis = liquidity_analyzer.analyze_route_liquidity(
-                                            route, usdt_amt, books
-                                        )
-                                        
-                                        if not liquidity_analysis['is_viable']:
-                                            should_execute = False
-                                            rejection_reason = f"Liquidez insuficiente: {', '.join(liquidity_analysis.get('risk_factors', []))}"
-                                    except Exception as e:
-                                        logging.debug(f"Error en análisis de liquidez: {e}")
-                                
-                                # Análisis de riesgo si está disponible
-                                if should_execute and RISK_CALCULATOR_AVAILABLE:
-                                    try:
-                                        risk_metrics = risk_calculator.calculate_risk_metrics(
-                                            route, usdt_amt, expected_profit, books
-                                        )
-                                        
-                                        should_execute, rejection_reason = risk_calculator.should_execute_trade(risk_metrics)
-                                        if should_execute:
-                                            optimal_amount = min(risk_metrics.recommended_position_size, usdt_amt)
-                                    except Exception as e:
-                                        logging.debug(f"Error en análisis de riesgo: {e}")
-                                
-                                # Ejecutar o reportar
-                                if should_execute:
-                                    logging.info(
-                                        f"💰 OPORTUNIDAD: {' → '.join(route)}\n"
-                                        f"   💵 Cantidad: {optimal_amount:.2f} USDT\n"
-                                        f"   📈 Ganancia: +{expected_profit:.4f} USDT ({net_gain*100:.3f}%)"
-                                    )
-                                    
-                                    if settings.LIVE:
-                                        logging.info("🟢 Ejecutando arbitraje...")
-                                        execute_arbitrage_trade(route, optimal_amount)
-                                        
-                                        # Actualizar riesgo si está disponible
-                                        if RISK_CALCULATOR_AVAILABLE:
-                                            risk_calculator.update_daily_risk(optimal_amount)
-                                        
-                                        cycle_trades += 1
-                                    else:
-                                        logging.info("📝 Modo simulación")
+                                if settings.LIVE:
+                                    logging.info("🟢 Ejecutando arbitraje...")
+                                    execute_arbitrage_trade(route, usdt_amt)
+                                    cycle_trades += 1
                                 else:
-                                    logging.debug(f"❌ Rechazado: {rejection_reason}")
+                                    logging.info("📝 Modo simulación")
                 
                 # Estadísticas
                 cycles_completed += 1
@@ -319,7 +460,7 @@ class ArbitrageBot:
                     success_rate = (trades_executed / max(opportunities_found, 1)) * 100
                     
                     logging.info("📊 RESUMEN:")
-                    logging.info(f"   🔄 Ciclos: {cycles_completed} | ⏱️ Tiempo: {cycle_time:.2f}s")
+                    logging.info(f"   🔄 Ciclos: {cycles_completed}")
                     logging.info(f"   🎯 Oportunidades/ciclo: {avg_opps:.1f}")
                     logging.info(f"   ✅ Trades: {trades_executed} | 📈 Éxito: {success_rate:.1f}%")
                 
@@ -336,14 +477,6 @@ class ArbitrageBot:
         """Cierre limpio"""
         logging.info("🛑 Cerrando bot...")
         self.running = False
-        
-        if WEBSOCKET_AVAILABLE and self.websocket_active:
-            try:
-                websocket_manager.stop()
-                logging.info("✅ WebSocket cerrado")
-            except Exception as e:
-                logging.error(f"❌ Error cerrando WebSocket: {e}")
-        
         logging.info("👋 Bot cerrado limpiamente")
 
 def main():
