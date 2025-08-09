@@ -3,108 +3,85 @@
 import logging
 
 # =============================================================================
-# CONFIGURACIÓN PRINCIPAL DEL BOT
+# 🔴 CONFIGURACIÓN PARA TRADES REALES
 # =============================================================================
 
-# 🔴 IMPORTANTE: Configurar en False para SIMULACIÓN
-LIVE = False  # ⚠️ True = trades reales, False = simulación
+# 🟢 ACTIVAR TRADES REALES
+LIVE = True  # ✅ True = trades reales, False = simulación
 
 # Configuración de mercado
-TOP_N_PAIRS = 50          # Reducido para mejor rendimiento
-BOOK_LIMIT = 20           # Reducido para optimización
+TOP_N_PAIRS = 30          # Reducido para mejor rendimiento
+BOOK_LIMIT = 20           # Profundidad de orderbook
 BASE_ASSET = 'USDT'       # Asset base para arbitraje
 
-# Configuración de rentabilidad
-PROFIT_THOLD = 0.001      # 0.1% ganancia mínima
-SLIPPAGE_PCT = 0.001      # 0.1% slippage esperado
-HOLD_SECONDS = 5          # Tiempo estimado de ejecución
+# Configuración de rentabilidad CONSERVADORA para trades reales
+PROFIT_THOLD = 0.008      # 0.8% ganancia mínima (más conservador)
+SLIPPAGE_PCT = 0.002      # 0.2% slippage esperado
+HOLD_SECONDS = 3          # Tiempo estimado de ejecución
 
-# Configuración de cantidades (USDT)
-QUANTUMS_USDT = [10, 25]  # Cantidades pequeñas para pruebas
+# 🔥 CANTIDADES PARA TRADES REALES (EMPEZAR PEQUEÑO)
+QUANTUMS_USDT = [10, 15]  # Solo cantidades pequeñas al inicio
 
 # Configuración de timing
-SLEEP_BETWEEN = 2         # Pausa entre ciclos (segundos)
+SLEEP_BETWEEN = 3         # Pausa más larga entre ciclos para trades reales
 
 # Configuración de logging
 LOG_LEVEL = logging.INFO
 
 # =============================================================================
-# CONFIGURACIÓN AVANZADA (OPCIONAL)
+# LÍMITES DE SEGURIDAD PARA TRADES REALES
 # =============================================================================
 
-# Límites de riesgo
-MAX_POSITION_SIZE = 50    # Máximo 50 USDT por posición
-MAX_DAILY_RISK = 100      # Máximo 100 USDT de riesgo por día
-MIN_LIQUIDITY = 1000      # Liquidez mínima requerida (USDT)
+# Límites de riesgo ESTRICTOS
+MAX_POSITION_SIZE = 20     # Máximo 20 USDT por posición (conservador)
+MAX_DAILY_RISK = 50        # Máximo 50 USDT de riesgo por día
+MIN_LIQUIDITY = 2000       # Liquidez mínima requerida (USDT)
+MAX_DAILY_TRADES = 20      # Máximo 20 trades por día
 
 # Configuración de performance
-MAX_EXECUTION_TIME = 10   # Máximo 10 segundos por trade
-MIN_CONFIDENCE = 0.6      # 60% confianza mínima
-MAX_SLIPPAGE = 0.02       # 2% slippage máximo
+MAX_EXECUTION_TIME = 8     # Máximo 8 segundos por trade
+MIN_CONFIDENCE = 0.75      # 75% confianza mínima para trades reales
+MAX_SLIPPAGE = 0.015       # 1.5% slippage máximo
 
 # Configuración de API
-API_TIMEOUT = 10          # Timeout de 10 segundos para API calls
-MAX_RETRIES = 3           # Máximo 3 reintentos por API call
+API_TIMEOUT = 8            # Timeout de 8 segundos para API calls
+MAX_RETRIES = 3            # Máximo 3 reintentos por API call
 
 # =============================================================================
-# CONFIGURACIONES POR MODO
+# CONFIGURACIÓN DE ALERTAS Y MONITOREO
 # =============================================================================
 
-if LIVE:
-    # Configuración para trading real (MÁS CONSERVADORA)
-    PROFIT_THOLD = 0.005    # 0.5% ganancia mínima para trades reales
-    QUANTUMS_USDT = [10]    # Solo 10 USDT para trades reales iniciales
-    SLEEP_BETWEEN = 3       # Más tiempo entre ciclos
-    MAX_POSITION_SIZE = 25  # Posiciones más pequeñas
-    
-    print("🔴 MODO LIVE ACTIVADO - TRADES REALES")
-    print("⚠️  USAR CON PRECAUCIÓN")
-    
-else:
-    # Configuración para simulación (MÁS AGRESIVA PARA TESTING)
-    PROFIT_THOLD = 0.001    # 0.1% para encontrar más oportunidades
-    QUANTUMS_USDT = [10, 25, 50]  # Varias cantidades para testing
-    SLEEP_BETWEEN = 2       # Ciclos más rápidos
-    
-    print("✅ MODO SIMULACIÓN ACTIVADO")
-    print("💡 No se ejecutarán trades reales")
+# Alertas críticas
+ENABLE_PROFIT_ALERTS = True    # Alertas de ganancias
+ENABLE_LOSS_ALERTS = True      # Alertas de pérdidas
+ENABLE_ERROR_ALERTS = True     # Alertas de errores
+
+# Límites para alertas
+PROFIT_ALERT_THRESHOLD = 5.0   # Alertar si ganancia > 5 USDT
+LOSS_ALERT_THRESHOLD = 2.0     # Alertar si pérdida > 2 USDT
 
 # =============================================================================
-# CONFIGURACIÓN DE DEBUGGING
+# VALIDACIONES DE SEGURIDAD
 # =============================================================================
 
-# Configuración de logs detallados
-DETAILED_LOGGING = True   # Logs más detallados
-LOG_OPPORTUNITIES = True  # Loggear todas las oportunidades encontradas
-LOG_PERFORMANCE = True    # Loggear métricas de rendimiento
+print("🔴 MODO LIVE ACTIVADO - TRADES REALES")
+print("⚠️  CONFIGURACIÓN CONSERVADORA APLICADA")
+print("💡 Empezando con cantidades pequeñas para pruebas")
 
-# Configuración de testing
-TEST_MODE = not LIVE      # True en simulación
-QUICK_TEST = False        # True para testing rápido (menos monedas)
-
-if QUICK_TEST:
-    TOP_N_PAIRS = 20
-    QUANTUMS_USDT = [10]
-    print("🚀 MODO TESTING RÁPIDO ACTIVADO")
-
-# =============================================================================
-# VALIDACIONES DE CONFIGURACIÓN
-# =============================================================================
-
-# Validar configuración
-if LIVE and PROFIT_THOLD < 0.003:
+# Validaciones automáticas
+if LIVE and PROFIT_THOLD < 0.005:
     print("⚠️ ADVERTENCIA: Threshold de ganancia muy bajo para modo LIVE")
+    PROFIT_THOLD = 0.008  # Forzar mínimo 0.8%
     
-if LIVE and max(QUANTUMS_USDT) > 100:
+if LIVE and max(QUANTUMS_USDT) > 50:
     print("⚠️ ADVERTENCIA: Cantidades muy altas para modo LIVE")
-
-if not LIVE and SLEEP_BETWEEN > 5:
-    print("💡 INFO: Considera reducir SLEEP_BETWEEN para simulación más rápida")
+    QUANTUMS_USDT = [10, 15]  # Forzar cantidades conservadoras
 
 # Mostrar configuración actual
-print(f"📊 Configuración cargada:")
-print(f"   Modo: {'🔴 LIVE' if LIVE else '✅ SIMULACIÓN'}")
-print(f"   Ganancia mínima: {PROFIT_THOLD*100:.2f}%")
-print(f"   Cantidades: {QUANTUMS_USDT} USDT")
-print(f"   Pares a evaluar: {TOP_N_PAIRS}")
-print(f"   Pausa entre ciclos: {SLEEP_BETWEEN}s")
+print(f"📊 Configuración para TRADES REALES:")
+print(f"   🎯 Ganancia mínima: {PROFIT_THOLD*100:.2f}%")
+print(f"   💰 Cantidades: {QUANTUMS_USDT} USDT")
+print(f"   🛡️ Posición máxima: {MAX_POSITION_SIZE} USDT")
+print(f"   📈 Trades máximos/día: {MAX_DAILY_TRADES}")
+print(f"   ⏱️ Pausa entre ciclos: {SLEEP_BETWEEN}s")
+print(f"   🎲 Confianza mínima: {MIN_CONFIDENCE*100:.0f}%")
