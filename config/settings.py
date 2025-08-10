@@ -1,61 +1,70 @@
-# config/settings.py - Configuración para balances bajos
+# config/settings.py - Configuración optimizada para detectar MÁS oportunidades
 
 import logging
 
-# CONFIGURACIÓN PARA BALANCES BAJOS (funciona con solo 10-20 USDT)
+# 🔥 CONFIGURACIÓN ULTRA-AGRESIVA PARA DETECTAR OPORTUNIDADES
 LIVE = True
 
-# Configuración de mercado
-TOP_N_PAIRS = 30          
+# Configuración de mercado AMPLIADA
+TOP_N_PAIRS = 50          # Aumentado de 30 a 50 pares
 BOOK_LIMIT = 20           
 BASE_ASSET = 'USDT'       
 
-# Configuración de rentabilidad ADAPTADA
-PROFIT_THOLD = 0.003      # 0.3% ganancia mínima (muy agresivo)
+# 🎯 CONFIGURACIÓN DE RENTABILIDAD MUY AGRESIVA
+PROFIT_THOLD = 0.002      # 0.2% ganancia mínima (reducido de 0.3% a 0.2%)
 SLIPPAGE_PCT = 0.002      
 HOLD_SECONDS = 3          
 
-# CANTIDADES PARA BALANCES BAJOS
-QUANTUMS_USDT = [5, 8, 10]  # Empezar con cantidades muy pequeñas
+# 💰 CANTIDADES AMPLIADAS PARA MÁS OPORTUNIDADES
+QUANTUMS_USDT = [5, 8, 10, 15, 20]  # Más opciones de cantidad
 
-# Configuración de timing
-SLEEP_BETWEEN = 2         
+# ⚡ CONFIGURACIÓN DE TIMING SUPER RÁPIDA
+SLEEP_BETWEEN = 1         # Reducido de 2s a 1s (ciclos más rápidos)
 
 # Configuración de logging
 LOG_LEVEL = logging.INFO
 
-# LÍMITES AJUSTADOS PARA BALANCES BAJOS
-MAX_POSITION_SIZE = 10     # Máximo 10 USDT por posición
-MAX_DAILY_RISK = 20        # Máximo 20 USDT de riesgo por día
-MIN_LIQUIDITY = 500        # Liquidez mínima reducida
-MAX_DAILY_TRADES = 15      # Máximo 15 trades por día
+# 🛡️ LÍMITES AJUSTADOS PARA MÁS FLEXIBILIDAD
+MAX_POSITION_SIZE = 20     # Aumentado de 10 a 20 USDT
+MAX_DAILY_RISK = 40        # Aumentado de 20 a 40 USDT
+MIN_LIQUIDITY = 500        # Mantenido bajo para más flexibilidad
+MAX_DAILY_TRADES = 30      # Aumentado de 15 a 30 trades
 
-# Configuración de performance RELAJADA
-MAX_EXECUTION_TIME = 10    
-MIN_CONFIDENCE = 0.5       # Solo 50% confianza mínima
-MAX_SLIPPAGE = 0.02        # 2% slippage máximo
+# 🎲 CONFIGURACIÓN DE PERFORMANCE MUY RELAJADA
+MAX_EXECUTION_TIME = 15    
+MIN_CONFIDENCE = 0.3       # Reducido de 0.5 a 0.3 (30% mínimo)
+MAX_SLIPPAGE = 0.03        # Aumentado a 3% slippage máximo
 
 # Configuración de API
 API_TIMEOUT = 8            
 MAX_RETRIES = 3            
 
 # VERIFICACIÓN DE BALANCE MÁS FLEXIBLE
-MIN_BALANCE_REQUIRED = 8   # Solo requiere 8 USDT mínimo
-BALANCE_MULTIPLIER = 1.5   # 1.5x la cantidad máxima (vs 2x normal)
+MIN_BALANCE_REQUIRED = 5   # Reducido de 8 a 5 USDT
+BALANCE_MULTIPLIER = 1.2   # Reducido para ser menos restrictivo
 
 # CONFIGURACIÓN DE ALERTAS
 ENABLE_PROFIT_ALERTS = True    
 ENABLE_LOSS_ALERTS = True      
 ENABLE_ERROR_ALERTS = True     
 
-# Límites para alertas AJUSTADOS
-PROFIT_ALERT_THRESHOLD = 1.0   # Alertar si ganancia > 1 USDT
-LOSS_ALERT_THRESHOLD = 0.5     # Alertar si pérdida > 0.5 USDT
+# Límites para alertas MUY SENSIBLES
+PROFIT_ALERT_THRESHOLD = 0.5   # Alertar con solo 0.5 USDT ganancia
+LOSS_ALERT_THRESHOLD = 0.3     # Alertar con 0.3 USDT pérdida
 
-print("CONFIGURACION PARA BALANCES BAJOS CARGADA")
-print("FUNCIONA CON SOLO 10-20 USDT EN SPOT")
-print(f"Configuracion:")
-print(f"   Ganancia minima: {PROFIT_THOLD*100:.2f}%")
-print(f"   Cantidades: {QUANTUMS_USDT}")
-print(f"   Balance minimo: {MIN_BALANCE_REQUIRED} USDT")
-print(f"   Posicion maxima: {MAX_POSITION_SIZE} USDT")
+# 🔥 CONFIGURACIÓN EXPERIMENTAL PARA DETECTAR MÁS OPORTUNIDADES
+EXPERIMENTAL_MODE = True
+MICRO_ARBITRAGE_ENABLED = True
+LOW_PROFIT_DETECTION = True
+
+print("🔥 CONFIGURACIÓN ULTRA-AGRESIVA CARGADA")
+print("🎯 OPTIMIZADA PARA DETECTAR MÁXIMO DE OPORTUNIDADES")
+print("⚠️ MODO EXPERIMENTAL ACTIVADO")
+print(f"Configuración:")
+print(f"   🎯 Ganancia mínima: {PROFIT_THOLD*100:.2f}% (MUY AGRESIVO)")
+print(f"   💰 Cantidades: {QUANTUMS_USDT}")
+print(f"   📊 Pares monitoreados: {TOP_N_PAIRS}")
+print(f"   ⚡ Ciclos cada: {SLEEP_BETWEEN}s")
+print(f"   🎲 Confianza mínima: {MIN_CONFIDENCE*100:.0f}%")
+print(f"   📈 Balance mínimo: {MIN_BALANCE_REQUIRED} USDT")
+print("="*50)
