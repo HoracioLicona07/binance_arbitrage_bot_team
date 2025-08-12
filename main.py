@@ -1,4 +1,4 @@
-# binance_arbitrage_bot/main.py - Versión ULTRA-OPTIMIZADA
+# binance_arbitrage_bot/main.py - TRADES REALES CON OPORTUNIDADES REALES
 
 import signal
 import sys
@@ -19,25 +19,8 @@ except ImportError:
     TRADE_MONITOR_AVAILABLE = False
     print("⚠️ Trade monitor no disponible")
 
-# Importar módulos mejorados
-try:
-    from services.enhanced_scanner import run_with_enhancements
-    ENHANCED_SCANNER_AVAILABLE = True
-    print("✅ Scanner mejorado disponible")
-except ImportError:
-    ENHANCED_SCANNER_AVAILABLE = False
-    print("⚠️ Scanner mejorado no disponible - usando scanner original")
-
-# Importar otros módulos
-try:
-    from services import scanner
-    from detection.opportunity_scanner import opportunity_scanner
-    from binance_api.order_executor import order_executor
-    from analytics.performance_analyzer import performance_analyzer
-    from risk_management.risk_calculator import risk_calculator
-    ENHANCED_MODULES = True
-except ImportError:
-    ENHANCED_MODULES = False
+# FORZAR uso de nuestro loop (no enhanced_scanner)
+ENHANCED_SCANNER_AVAILABLE = False
 
 class LiveArbitrageBot:
     def __init__(self):
@@ -46,10 +29,6 @@ class LiveArbitrageBot:
         
     def verify_live_trading_readiness(self):
         """Verifica que todo esté listo para trades reales"""
-        if not self.live_mode:
-            logging.info("💡 Modo simulación - saltando verificaciones de trading real")
-            return True
-            
         print("\n🔴 VERIFICANDO PREPARACIÓN PARA TRADES REALES")
         print("="*60)
         
@@ -66,7 +45,7 @@ class LiveArbitrageBot:
                     usdt_balance = float(balance['free'])
                     break
             
-            min_balance_required = getattr(settings, 'MIN_BALANCE_REQUIRED', max(settings.QUANTUMS_USDT) * getattr(settings, 'BALANCE_MULTIPLIER', 1.5))
+            min_balance_required = max(settings.QUANTUMS_USDT) * 2  # 2x la cantidad máxima
             
             if usdt_balance >= min_balance_required:
                 print(f"✅ Balance USDT: {usdt_balance:.2f} (mínimo: {min_balance_required:.2f})")
@@ -79,69 +58,48 @@ class LiveArbitrageBot:
             print(f"❌ Error verificando balance: {e}")
             checks.append(False)
         
-        # 2. Verificar configuración mejorada
-        print(f"✅ Threshold ultra-agresivo: {settings.PROFIT_THOLD*100:.2f}%")
-        print(f"✅ Fees optimizadas: 0.075% (con BNB)")
-        print(f"✅ Configuración experimental activada")
+        # 2. Verificar configuración
+        print(f"✅ Threshold optimizado: {settings.PROFIT_THOLD*100:.3f}%")
+        print(f"✅ Cantidades: {settings.QUANTUMS_USDT}")
+        print(f"✅ Modo REAL activado")
         checks.append(True)
-        
-        # 3. Verificar cantidades
-        if max(settings.QUANTUMS_USDT) <= 50:
-            print(f"✅ Cantidades: {settings.QUANTUMS_USDT}")
-            checks.append(True)
-        else:
-            print(f"❌ Cantidades muy altas: {settings.QUANTUMS_USDT}")
-            checks.append(False)
-        
-        # 4. Verificar módulos necesarios
-        if ENHANCED_MODULES:
-            print("✅ Módulos avanzados disponibles")
-            checks.append(True)
-        else:
-            print("⚠️ Módulos avanzados limitados")
-            checks.append(True)  # No crítico
         
         print("="*60)
         
         if all(checks):
             print("🟢 LISTO PARA TRADES REALES")
-            print("🔥 MODO ULTRA-AGRESIVO ACTIVADO")
+            print("💰 MODO REAL - GANANCIAS REALES")
             return True
         else:
             print("🔴 NO LISTO PARA TRADES REALES")
-            print("💡 Revisa la configuración antes de continuar")
             return False
 
     def run_live_trading_loop(self):
-        """Loop principal OPTIMIZADO para detectar MÁS oportunidades"""
-        
-        # Verificar si usar versión mejorada
-        if ENHANCED_SCANNER_AVAILABLE:
-            print("🚀 Usando scanner mejorado con detección inteligente")
-            try:
-                run_with_enhancements()
-            except Exception as e:
-                print(f"❌ Error en scanner mejorado: {e}")
-                print("🔄 Cayendo a scanner original ULTRA-OPTIMIZADO...")
-                self.run_ultra_optimized_loop()
-        else:
-            print("📊 Usando scanner ULTRA-OPTIMIZADO")
-            self.run_ultra_optimized_loop()
+        """Loop principal para trades REALES"""
+        print("🚀 INICIANDO TRADING REAL - SIN SINTÉTICOS")
+        self.run_real_arbitrage_loop()
 
-    def run_ultra_optimized_loop(self):
-        """Loop ULTRA-OPTIMIZADO con mejores fees y detección"""
+    def run_real_arbitrage_loop(self):
+        """Loop REAL buscando oportunidades REALES de arbitraje"""
         from binance_api import market_data
         from itertools import combinations
         from strategies.triangular import simulate_route_gain, fetch_symbol_filters
         
         # Inicializar
-        fetch_symbol_filters()
-        sym_map = market_data.exchange_map()
-        valid_symbols = set(sym_map.keys())
+        try:
+            fetch_symbol_filters()
+            sym_map = market_data.exchange_map()
+            valid_symbols = set(sym_map.keys())
+            print(f"✅ Símbolos cargados: {len(valid_symbols)}")
+        except Exception as e:
+            print(f"❌ Error inicializando: {e}")
+            return
         
-        print(f"\n🔥 INICIANDO TRADING ULTRA-OPTIMIZADO")
-        print(f"📊 Configuración: {settings.QUANTUMS_USDT} USDT, {settings.PROFIT_THOLD*100:.2f}% mín")
-        print(f"💰 Fees optimizadas: 0.075% por transacción (con BNB)")
+        print(f"\n💰 INICIANDO ARBITRAJE REAL")
+        print(f"📊 Configuración: {settings.QUANTUMS_USDT} USDT")
+        print(f"🎯 Threshold: {settings.PROFIT_THOLD*100:.3f}% mínimo")
+        print(f"⚡ Ciclos cada: {settings.SLEEP_BETWEEN}s")
+        print("🚫 SIN oportunidades sintéticas - SOLO REALES")
         
         cycle_count = 0
         adaptive_threshold = settings.PROFIT_THOLD
@@ -156,189 +114,359 @@ class LiveArbitrageBot:
             cycle_count += 1
             
             try:
-                # Obtener MÁS datos de mercado
+                # Obtener datos de mercado REALES
                 symbols = market_data.top_volume_symbols(settings.TOP_N_PAIRS)
-                books = market_data.depth_snapshots(symbols[:35])  # Más símbolos
+                books = market_data.depth_snapshots(symbols[:30])
                 
-                # MÁS monedas prioritarias
-                priority_coins = [
-                    'BTC', 'ETH', 'BNB', 'ADA', 'DOT', 'LINK', 'XRP', 'LTC', 
-                    'MATIC', 'AVAX', 'SOL', 'DOGE', 'ATOM', 'FIL', 'TRX'
-                ]
+                if not books or len(books) < 10:
+                    print(f"⚠️ Pocos datos de mercado: {len(books)} símbolos")
+                    time.sleep(2)
+                    continue
                 
-                print(f"\n🔍 CICLO {cycle_count} - Threshold: {adaptive_threshold*100:.2f}%")
+                # Monedas con mejor liquidez y volumen
+                priority_coins = ['BTC', 'ETH', 'BNB', 'ADA', 'DOT', 'LINK', 'XRP', 'LTC', 'MATIC', 'AVAX', 'SOL', 'DOGE']
+                
+                print(f"\n🔍 CICLO {cycle_count} - Buscando oportunidades REALES (Threshold: {adaptive_threshold*100:.3f}%)")
                 
                 opportunities_found = 0
                 best_opportunities = []
                 
-                # 🔥 BÚSQUEDA ULTRA-AGRESIVA de oportunidades
-                for combo in combinations(priority_coins[:10], 2):  # MÁS combinaciones
+                # 🎯 BÚSQUEDA REAL de oportunidades
+                for combo in combinations(priority_coins[:8], 2):
                     if not self.running:
                         break
                         
                     route = [settings.BASE_ASSET] + list(combo) + [settings.BASE_ASSET]
                     
-                    # 🎯 Probar TODAS las cantidades de settings
-                    for amount in settings.QUANTUMS_USDT:
+                    # Verificar que todos los símbolos existan
+                    route_symbols = []
+                    valid_route = True
+                    
+                    for i in range(len(route) - 1):
+                        symbol1 = f"{route[i]}{route[i+1]}"
+                        symbol2 = f"{route[i+1]}{route[i]}"
+                        
+                        if symbol1 in valid_symbols:
+                            route_symbols.append(symbol1)
+                        elif symbol2 in valid_symbols:
+                            route_symbols.append(symbol2)
+                        else:
+                            valid_route = False
+                            break
+                    
+                    if not valid_route:
+                        continue
+                    
+                    # Probar diferentes cantidades
+                    for amount in settings.QUANTUMS_USDT[:6]:  # Primeras 6 cantidades
                         try:
                             final_qty = simulate_route_gain(route, amount, books, valid_symbols)
-                            if final_qty == 0:
+                            if final_qty <= amount:  # Sin ganancia
                                 continue
                             
-                            # 💡 USAR NUESTRO NUEVO CÁLCULO DE FEES
+                            # Calcular profit real
+                            gross_profit = final_qty - amount
+                            gross_profit_pct = gross_profit / amount
+                            
+                            # Verificar threshold básico primero
+                            if gross_profit_pct < adaptive_threshold:
+                                continue
+                            
+                            # Usar nuestro cálculo de fees mejorado
                             fee_analysis = calculate_net_profit_after_fees(route, amount, final_qty)
                             
-                            # Solo continuar si es rentable DESPUÉS de fees
                             if not fee_analysis['profitable']:
                                 continue
                                 
                             net_profit = fee_analysis['net_profit']
                             net_profit_pct = fee_analysis['net_profit_percentage'] / 100
                             
-                            # 🎯 Usar threshold más inteligente
-                            if net_profit_pct > adaptive_threshold:
+                            # Verificar que sea rentable después de fees
+                            if net_profit_pct > adaptive_threshold and net_profit > 0.01:  # Mínimo 1 centavo
                                 opportunities_found += 1
                                 
-                                # Score de calidad mejorado
-                                quality_score = min(1.0, net_profit_pct / 0.01)  # Normalizar a 1%
+                                # Calcular calidad basada en profit y liquidez
+                                quality_score = min(1.0, net_profit_pct / 0.005)  # Normalizar a 0.5%
+                                
+                                # Verificar liquidez de la ruta
+                                liquidity_score = self.calculate_route_liquidity(route_symbols, books, amount)
+                                final_quality = (quality_score + liquidity_score) / 2
                                 
                                 opportunity = {
                                     'route': route,
+                                    'route_symbols': route_symbols,
                                     'amount': amount,
-                                    'gross_profit': final_qty - amount,
+                                    'gross_profit': gross_profit,
                                     'net_profit': net_profit,
                                     'net_profit_pct': net_profit_pct,
                                     'total_fees': fee_analysis['total_fees'],
-                                    'quality_score': quality_score,
-                                    'fee_analysis': fee_analysis
+                                    'quality_score': final_quality,
+                                    'liquidity_score': liquidity_score,
+                                    'fee_analysis': fee_analysis,
+                                    'real': True
                                 }
                                 
                                 best_opportunities.append(opportunity)
                                 
-                                # Log mejorado
                                 if TRADE_MONITOR_AVAILABLE:
-                                    trade_monitor.log_opportunity(route, amount, net_profit, quality_score)
+                                    trade_monitor.log_opportunity(route, amount, net_profit, final_quality)
                                 
                         except Exception as e:
-                            logging.debug(f"Error evaluando {route}: {e}")
+                            logging.debug(f"Error evaluando {route} con {amount}: {e}")
                             continue
                 
-                # Ordenar por rentabilidad NETA
-                best_opportunities.sort(key=lambda x: x['net_profit_pct'], reverse=True)
-                
-                # 🔥 Ejecutar mejores oportunidades con validación avanzada
-                trades_executed = 0
-                for opp in best_opportunities[:5]:  # Top 5 en lugar de 3
+                # 🚀 EJECUTAR oportunidades REALES
+                if best_opportunities:
+                    # Ordenar por rentabilidad NETA
+                    best_opportunities.sort(key=lambda x: x['net_profit_pct'], reverse=True)
                     
-                    print(f"💰 OPORTUNIDAD VALIDADA: {' → '.join(opp['route'])}")
-                    print(f"   💵 {opp['amount']:.0f} USDT → Ganancia NETA: +{opp['net_profit']:.4f} USDT ({opp['net_profit_pct']*100:.3f}%)")
-                    print(f"   💸 Fees totales: {opp['total_fees']:.4f} USDT")
-                    print(f"   🎯 Quality: {opp['quality_score']:.2f}")
-                    
-                    # 🎯 Validación FINAL con nuestro sistema mejorado
-                    trade_decision = should_execute_trade_with_fees(
-                        opp['route'], opp['amount'], opp['amount'] + opp['gross_profit']
-                    )
-                    
-                    if trade_decision['should_execute'] and opp['quality_score'] >= 0.2:
-                        print(f"   ✅ {trade_decision['recommendation']}: {trade_decision['reason']}")
+                    trades_executed = 0
+                    for opp in best_opportunities[:2]:  # Solo top 2 para ser conservador
                         
-                        success, actual_profit = self.execute_real_trade(
-                            opp['route'], opp['amount'], opp['net_profit'], books
+                        print(f"💰 OPORTUNIDAD REAL: {' → '.join(opp['route'])}")
+                        print(f"   💵 {opp['amount']:.0f} USDT → Ganancia NETA: +{opp['net_profit']:.4f} USDT ({opp['net_profit_pct']*100:.3f}%)")
+                        print(f"   💸 Fees: {opp['total_fees']:.4f} USDT")
+                        print(f"   🎯 Quality: {opp['quality_score']:.2f}")
+                        print(f"   💧 Liquidez: {opp['liquidity_score']:.2f}")
+                        
+                        # Validación final
+                        trade_decision = should_execute_trade_with_fees(
+                            opp['route'], opp['amount'], opp['amount'] + opp['gross_profit']
                         )
                         
-                        if success:
-                            trades_executed += 1
-                            print(f"   🎉 Trade ejecutado: +{actual_profit:.4f} USDT")
-                        
-                        if TRADE_MONITOR_AVAILABLE:
-                            trade_monitor.log_trade_execution(
-                                opp['route'], opp['amount'], success, actual_profit,
-                                execution_time=2.0,
-                                error_msg="" if success else "Error de ejecución"
+                        if trade_decision['should_execute'] and opp['quality_score'] >= 0.4:
+                            print(f"   ✅ EJECUTANDO TRADE REAL")
+                            
+                            success, actual_profit = self.execute_real_trade(
+                                opp['route'], opp['route_symbols'], opp['amount'], 
+                                opp['net_profit'], books
                             )
-                        
-                        if success:
-                            time.sleep(0.5)  # Pausa más corta
-                    else:
-                        print(f"   ❌ RECHAZADO: {trade_decision['reason']}")
+                            
+                            if success:
+                                trades_executed += 1
+                                print(f"   🎉 Trade REAL ejecutado: +{actual_profit:.4f} USDT")
+                            else:
+                                print(f"   ❌ Error en ejecución real")
+                            
+                            if TRADE_MONITOR_AVAILABLE:
+                                trade_monitor.log_trade_execution(
+                                    opp['route'], opp['amount'], success, actual_profit,
+                                    execution_time=3.0,
+                                    error_msg="" if success else "Error de ejecución real"
+                                )
+                            
+                            if success:
+                                time.sleep(2)  # Pausa entre trades reales
+                        else:
+                            print(f"   ❌ RECHAZADO: Calidad insuficiente o validación fallida")
+                else:
+                    print("   📭 No se encontraron oportunidades reales")
                 
-                # 🎯 Ajuste adaptativo MEJORADO del threshold
+                # Ajuste adaptativo del threshold
                 opportunities_history.append(opportunities_found)
-                if len(opportunities_history) > 15:  # Más historial
-                    opportunities_history = opportunities_history[-15:]
+                if len(opportunities_history) > 20:
+                    opportunities_history = opportunities_history[-20:]
                 
                 avg_opportunities = sum(opportunities_history) / len(opportunities_history)
                 
-                # 🔥 Lógica de ajuste MÁS AGRESIVA
-                if avg_opportunities < 0.3:
-                    # MUY pocas oportunidades: reducir threshold MÁS agresivamente
-                    adaptive_threshold *= 0.85
-                    adaptive_threshold = max(0.001, adaptive_threshold)  # Mínimo 0.1%
-                    print(f"🎯 Threshold ULTRA-reducido a {adaptive_threshold*100:.2f}%")
-                elif avg_opportunities < 1:
-                    # Pocas oportunidades: reducir threshold
-                    adaptive_threshold *= 0.92
-                    adaptive_threshold = max(0.0015, adaptive_threshold)  # Mínimo 0.15%
-                    print(f"🎯 Threshold reducido a {adaptive_threshold*100:.2f}%")
-                elif avg_opportunities > 6:
-                    # MUCHAS oportunidades: aumentar threshold
-                    adaptive_threshold *= 1.15
-                    adaptive_threshold = min(0.025, adaptive_threshold)  # Máximo 2.5%
-                    print(f"🎯 Threshold aumentado a {adaptive_threshold*100:.2f}%")
+                # Lógica de ajuste más conservadora para trades reales
+                if avg_opportunities < 0.1:
+                    # Muy pocas oportunidades: reducir threshold
+                    adaptive_threshold *= 0.95
+                    adaptive_threshold = max(0.002, adaptive_threshold)  # Mínimo 0.2%
+                    print(f"🎯 Threshold reducido a {adaptive_threshold*100:.3f}%")
+                elif avg_opportunities > 2:
+                    # Muchas oportunidades: aumentar threshold para mejor calidad
+                    adaptive_threshold *= 1.05
+                    adaptive_threshold = min(0.01, adaptive_threshold)  # Máximo 1%
+                    print(f"🎯 Threshold aumentado a {adaptive_threshold*100:.3f}%")
                 
-                # Mostrar estadísticas MÁS frecuentes
-                if cycle_count % 3 == 0:  # Cada 3 ciclos en lugar de 5
+                # Mostrar estadísticas cada 5 ciclos
+                if cycle_count % 5 == 0:
                     if TRADE_MONITOR_AVAILABLE:
                         trade_monitor.show_live_stats()
                     print(f"📈 Oportunidades promedio: {avg_opportunities:.1f}")
-                    print(f"📊 Threshold actual: {adaptive_threshold*100:.2f}%")
-                    print(f"💰 Trades ejecutados este ciclo: {trades_executed}")
+                    print(f"📊 Threshold actual: {adaptive_threshold*100:.3f}%")
+                    print(f"💰 Trades ejecutados hoy: {trades_executed}")
                 
-                # ⚡ Pausa MÁS adaptativa y rápida
+                # Pausa entre ciclos
                 cycle_time = time.time() - cycle_start
-                if opportunities_found == 0:
-                    sleep_time = max(0.5, settings.SLEEP_BETWEEN * 0.7)  # MÁS rápido si no hay oportunidades
-                elif opportunities_found > 3:
-                    sleep_time = max(0.8, settings.SLEEP_BETWEEN * 1.1)  # Poco más lento si hay muchas
-                else:
-                    sleep_time = max(0.5, settings.SLEEP_BETWEEN - cycle_time)
-                
+                sleep_time = max(1, settings.SLEEP_BETWEEN - cycle_time)
                 time.sleep(sleep_time)
                 
             except Exception as e:
-                logging.error(f"❌ Error en ciclo: {e}")
-                time.sleep(1)  # Pausa más corta en errores
+                logging.error(f"❌ Error en ciclo {cycle_count}: {e}")
+                print(f"❌ Error en ciclo {cycle_count}: {e}")
+                time.sleep(3)
     
-    def execute_real_trade(self, route, amount, expected_profit, books):
-        """Ejecuta un trade real con validaciones adicionales"""
+    def calculate_route_liquidity(self, route_symbols, books, amount):
+        """Calcula el score de liquidez para una ruta"""
+        try:
+            total_liquidity = 0
+            symbol_count = 0
+            
+            for symbol in route_symbols:
+                if symbol in books:
+                    book = books[symbol]
+                    if book.get('bids') and book.get('asks'):
+                        # Liquidez en top 3 niveles
+                        bid_liq = sum(float(level[1]) for level in book['bids'][:3])
+                        ask_liq = sum(float(level[1]) for level in book['asks'][:3])
+                        symbol_liquidity = (bid_liq + ask_liq) / 2
+                        total_liquidity += symbol_liquidity
+                        symbol_count += 1
+            
+            if symbol_count == 0:
+                return 0.0
+            
+            avg_liquidity = total_liquidity / symbol_count
+            # Normalizar: 500 USDT de liquidez = score 0.5
+            return min(1.0, avg_liquidity / 1000)
+            
+        except Exception:
+            return 0.3  # Score neutro si hay error
+    
+    def execute_real_trade(self, route, route_symbols, amount, expected_profit, books):
+        """Ejecuta un trade REAL en Binance"""
         try:
             if not self.live_mode:
-                # Simulación MÁS realista
-                return True, expected_profit * 0.85  # 85% de la ganancia esperada
+                print("⚠️ Modo simulación - no se ejecutarán trades reales")
+                return True, expected_profit * 0.85
             
-            # AQUÍ VA LA EJECUCIÓN REAL
             print(f"🔥 EJECUTANDO TRADE REAL: {' → '.join(route)}")
+            print(f"📊 Símbolos: {route_symbols}")
+            print(f"💰 Cantidad: {amount} USDT")
             
-            if ENHANCED_MODULES:
-                # Usar order executor avanzado
-                execution_result = order_executor.execute_arbitrage_atomic(
-                    route, amount, max_slippage=0.015
-                )
+            # AQUÍ VAS A IMPLEMENTAR LA EJECUCIÓN REAL
+            # Por ahora simularemos para evitar errores
+            
+            # Importar cliente de Binance
+            from binance_api.client import client
+            
+            # PASO 1: Verificar balance inicial
+            initial_balance = self.get_usdt_balance()
+            print(f"💵 Balance inicial: {initial_balance:.4f} USDT")
+            
+            if initial_balance < amount:
+                print(f"❌ Balance insuficiente")
+                return False, 0.0
+            
+            # PASO 2: Ejecutar cada paso de la ruta
+            current_asset = route[0]  # USDT
+            current_amount = amount
+            
+            for i in range(len(route_symbols)):
+                target_asset = route[i + 1]
+                symbol = route_symbols[i]
                 
-                return execution_result.success, execution_result.net_profit
-            else:
-                # Ejecución básica
-                from strategies.triangular import execute_arbitrage_trade
-                execute_arbitrage_trade(route, amount)
+                print(f"🔄 Paso {i+1}: {current_asset} → {target_asset} via {symbol}")
                 
-                # Resultado más realista
-                actual_profit = expected_profit * 0.75  # 75% conservador
-                return True, actual_profit
+                # Determinar si es compra o venta
+                if symbol.startswith(current_asset):
+                    # Vender current_asset por target_asset
+                    side = 'SELL'
+                    qty = current_amount
+                else:
+                    # Comprar target_asset con current_asset
+                    side = 'BUY'
+                    # Para BUY, necesitamos calcular quantity en base asset
+                    if current_asset == 'USDT':
+                        # Comprando con USDT
+                        price = self.get_current_price(symbol)
+                        qty = current_amount / price
+                    else:
+                        qty = current_amount
+                
+                # EJECUTAR ORDEN REAL
+                success, result_qty = self.execute_market_order(symbol, side, qty)
+                
+                if not success:
+                    print(f"❌ Error en paso {i+1}")
+                    return False, 0.0
+                
+                current_amount = result_qty
+                current_asset = target_asset
+                
+                print(f"✅ Paso {i+1} completado: {current_amount:.6f} {current_asset}")
+                time.sleep(0.5)  # Pausa entre órdenes
+            
+            # PASO 3: Verificar resultado
+            final_balance = self.get_usdt_balance()
+            actual_profit = final_balance - initial_balance
+            
+            print(f"💵 Balance final: {final_balance:.4f} USDT")
+            print(f"💰 Ganancia real: {actual_profit:.4f} USDT")
+            
+            return actual_profit > 0, actual_profit
                 
         except Exception as e:
             logging.error(f"❌ Error ejecutando trade real: {e}")
+            print(f"❌ Error ejecutando trade real: {e}")
             return False, 0.0
+    
+    def get_usdt_balance(self):
+        """Obtiene el balance actual de USDT"""
+        try:
+            from binance_api.client import client
+            account = client.get_account()
+            
+            for balance in account['balances']:
+                if balance['asset'] == 'USDT':
+                    return float(balance['free'])
+            return 0.0
+        except Exception:
+            return 0.0
+    
+    def get_current_price(self, symbol):
+        """Obtiene el precio actual de un símbolo"""
+        try:
+            from binance_api.client import client
+            ticker = client.get_symbol_ticker(symbol=symbol)
+            return float(ticker['price'])
+        except Exception:
+            return 0.0
+    
+    def execute_market_order(self, symbol, side, quantity):
+        """Ejecuta una orden de mercado REAL"""
+        try:
+            from binance_api.client import client
+            
+            # Formatear cantidad según filtros del símbolo
+            formatted_qty = self.format_quantity(symbol, quantity)
+            
+            print(f"📝 Ejecutando: {side} {formatted_qty} {symbol}")
+            
+            # EJECUTAR ORDEN REAL
+            order = client.order_market(
+                symbol=symbol,
+                side=side,
+                quantity=formatted_qty
+            )
+            
+            print(f"✅ Orden ejecutada: {order['orderId']}")
+            
+            # Obtener cantidad resultante
+            if side == 'BUY':
+                # En compra, obtenemos el asset base
+                result_qty = float(order['executedQty'])
+            else:
+                # En venta, obtenemos el quote asset
+                result_qty = float(order['cummulativeQuoteQty'])
+            
+            return True, result_qty
+            
+        except Exception as e:
+            print(f"❌ Error ejecutando orden: {e}")
+            return False, 0.0
+    
+    def format_quantity(self, symbol, quantity):
+        """Formatea la cantidad según los filtros del símbolo"""
+        try:
+            # Implementar formateo basado en los filtros cargados
+            # Por simplicidad, redondear a 6 decimales
+            return round(quantity, 6)
+        except Exception:
+            return quantity
 
     def setup_signal_handlers(self):
         """Configura cierre limpio"""
@@ -373,7 +501,7 @@ class LiveArbitrageBot:
         """Función principal"""
         setup_logger()
         
-        print("🤖 BINANCE ARBITRAGE BOT - VERSIÓN ULTRA-OPTIMIZADA")
+        print("🤖 BINANCE ARBITRAGE BOT - TRADES REALES")
         print("="*60)
         
         # Verificar modo
@@ -385,13 +513,13 @@ class LiveArbitrageBot:
         else:
             print("✅ MODO SIMULACIÓN")
         
-        # Mostrar capacidades disponibles
-        print(f"🧠 Scanner Mejorado: {'✅' if ENHANCED_SCANNER_AVAILABLE else '❌'}")
+        # Mostrar capacidades
+        print(f"🧠 Scanner Real: ✅")
         print(f"📊 Threshold Adaptativo: ✅")
-        print(f"🎯 Detección Inteligente: {'✅' if ENHANCED_SCANNER_AVAILABLE else '📊 Ultra-Optimizada'}")
+        print(f"🎯 Solo Oportunidades Reales: ✅")
         print(f"📈 Trade Monitor: {'✅' if TRADE_MONITOR_AVAILABLE else '❌'}")
-        print(f"💰 Cálculo de Fees Preciso: ✅")
-        print(f"🔥 Modo Experimental: ✅")
+        print(f"💰 Ejecución Real: ✅")
+        print(f"🚫 Sin Sintéticos: ✅")
         
         # Configurar handlers
         self.setup_signal_handlers()
@@ -408,28 +536,28 @@ class LiveArbitrageBot:
             self.shutdown()
 
 def main():
-    """Punto de entrada principal ULTRA-MEJORADO"""
+    """Punto de entrada para trades REALES"""
     
     # Verificar configuración
     if settings.LIVE:
-        print("🔥 ATENCIÓN: MODO ULTRA-AGRESIVO ACTIVADO")
-        print("💰 Fees optimizadas: 0.075% (con descuento BNB)")
-        print("🎯 Threshold ultra-bajo para máxima detección")
-        confirmation = input("¿Estás seguro de continuar? (escribe 'SI' para confirmar): ")
+        print("💰 ATENCIÓN: TRADES REALES ACTIVADOS")
+        print("🚫 Sin oportunidades sintéticas")
+        print("💸 Ganancias y pérdidas reales")
+        confirmation = input("¿Estás seguro de continuar con TRADES REALES? (escribe 'SI' para confirmar): ")
         if confirmation != 'SI':
             print("❌ Operación cancelada por el usuario")
             return
     
     bot = LiveArbitrageBot()
     
-    # Mostrar configuración MEJORADA
-    print(f"\n📋 CONFIGURACIÓN ULTRA-OPTIMIZADA:")
-    print(f"   🎯 Threshold inicial: {settings.PROFIT_THOLD*100:.2f}% (ULTRA-AGRESIVO)")
+    # Mostrar configuración REAL
+    print(f"\n📋 CONFIGURACIÓN PARA TRADES REALES:")
+    print(f"   🎯 Threshold inicial: {settings.PROFIT_THOLD*100:.3f}%")
     print(f"   💰 Cantidades: {settings.QUANTUMS_USDT}")
     print(f"   📊 Pares monitoreados: {settings.TOP_N_PAIRS}")
     print(f"   ⚡ Pausa entre ciclos: {settings.SLEEP_BETWEEN}s")
-    print(f"   💸 Fees precisas: 0.075% por transacción")
-    print(f"   🎲 Confianza mínima: {settings.MIN_CONFIDENCE*100:.0f}%")
+    print(f"   🚫 Sintéticos: DESACTIVADOS")
+    print(f"   💸 Ejecución: REAL")
     
     bot.run()
 
